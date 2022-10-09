@@ -66,7 +66,11 @@ class TftpPacket {
      * be, given the current block number.
      */
     static int nextBlock(int current) {
-        /* XXX: implement */
+        if (current == 255) {
+            return 1;
+        } else {
+            return current + 1;
+        }
     }
 
     /*
@@ -74,7 +78,11 @@ class TftpPacket {
      * given the current block number.
      */
     static int lastBlock(int current) {
-        /* XXX: implement */
+        if (current == 1) {
+            return 255;
+        } else {
+            return current - 1;
+        }
     }
 
     /*
@@ -229,26 +237,51 @@ class TftpPacket {
              * unsigned integer when creating the integer value.
              * extract the type and block
              */
-            /* XXX: implement */
+            if (length < 2) {
+                return null;
+            }
+
+            p.type = Type.DATA;
+
+            p.block = Byte.toUnsignedInt(data[1]);
 
             /*
              * to extract the data, allocate a new byte array sized
              * exactly the size needed (length-2) and use
              * System.arraycopy to copy the data out of the packet.
              */
-            /* XXX: implement */
+            p.data = new byte[length - 2];
+            System.arraycopy(data, 2, p.data, 0, length - 2);
+
+            return p;
         } else if (data[0] == 3) {
             /*
              * parse the ACK packet, which must be exactly 2 bytes in
              * size (the type and block number fields
              */
-            /* XXX: implement */
+            if (length < 2) {
+                return null;
+            }
+
+            p.type = Type.ACK;
+
+            p.block = Byte.toUnsignedInt(data[1]);
+
+            return p;
         } else if (data[0] == 4) {
             /*
              * parse the ERROR packet, which must be at least 2 bytes
              * in size (for the type and error strings)
              */
-            /* XXX: implement */
+            if (length < 2) {
+                return null;
+            }
+
+            p.type = Type.ERROR;
+
+            p.error = new String(data, 1, length - 1);
+
+            return p;
         }
 
         /*
