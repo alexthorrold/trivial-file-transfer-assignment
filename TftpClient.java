@@ -1,6 +1,8 @@
 import java.net.*;
 import java.io.*;
-import java.util.Arrays;
+
+// Alex Thorrold
+// 1578693
 
 class TftpClient {
     public static void main(String args[]) {

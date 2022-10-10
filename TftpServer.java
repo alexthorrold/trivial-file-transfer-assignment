@@ -1,6 +1,9 @@
 import java.net.*;
 import java.io.*;
 
+// Alex Thorrold
+// 1578693
+
 class TftpServerWorker extends Thread {
     private DatagramPacket req;
 
@@ -114,11 +117,12 @@ class TftpServerWorker extends Thread {
                  */
                 try {
                     ds.send(dataPacket);
-                    numberOfTransmissions++;
-                    transmit = false;
                 } catch (IOException e) {
                     System.out.println(e.getMessage());
                 }
+
+                numberOfTransmissions++;
+                transmit = false;
 
                 /*
                  * call receive, looking for an ACK for the current
