@@ -21,7 +21,7 @@ class TftpClient {
         try {
             port = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            System.out.println(e.getMessage());
+            System.out.println(e.getMessage() + "here1");
             return;
         }
 
@@ -33,7 +33,7 @@ class TftpClient {
         try {
             ia = InetAddress.getByName(name);
         } catch (UnknownHostException e) {
-            System.out.println(e.getMessage());
+            System.out.println(e.getMessage() + "here2");
             return;
         }
 
@@ -43,7 +43,7 @@ class TftpClient {
 			ds = new DatagramSocket();
 			ds.setSoTimeout(6000);
 		} catch (SocketException e) {
-			System.out.println(e.getMessage());
+			System.out.println(e.getMessage() + "here3");
 			return;
 		}
 
@@ -56,7 +56,7 @@ class TftpClient {
 		try {
 			fos = new FileOutputStream("rx-" + filename);
 		} catch (FileNotFoundException e) {
-			System.out.println(e.getMessage());
+			System.out.println(e.getMessage() + "here4");
 			ds.close();
 			return;
 		}
@@ -70,7 +70,7 @@ class TftpClient {
 		try {
 			ds.send(rrqPacket);
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
+			System.out.println(e.getMessage() + "here5");
 			ds.close();
 			return;
 		}
