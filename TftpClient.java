@@ -152,7 +152,6 @@ class TftpClient {
                  */
                 if (tp.getBlock() == nextBlock) {
                     byte[] data = tp.getData();
-                    System.out.println(Arrays.toString(data));
                     fos.write(data);
 
                     DatagramPacket ackPacket = TftpPacket.createACK(resAddress, resPort, nextBlock);
