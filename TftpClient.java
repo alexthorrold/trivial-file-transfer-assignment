@@ -158,7 +158,7 @@ class TftpClient {
                     DatagramPacket ackPacket = TftpPacket.createACK(resAddress, resPort, nextBlock);
                     ds.send(ackPacket);
 
-                    if (data.length < 512) {
+                    if (data.length != 512) {
                         break;
                     }
                 }
