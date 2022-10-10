@@ -103,7 +103,7 @@ class TftpServerWorker extends Thread {
             boolean transmit = true;
             int numberOfTransmissions = 0;
 
-            while (true) {
+            while (transmit) {
                 /*
                  * if we are to transmit the packet this pass through
                  * the loop, send the packet and increment the number
@@ -119,7 +119,6 @@ class TftpServerWorker extends Thread {
                 }
 
                 transmit = false;
-                numberOfTransmissions++;
 
                 /*
                  * call receive, looking for an ACK for the current
@@ -140,12 +139,16 @@ class TftpServerWorker extends Thread {
 					else {
 						transmit = true;
 
-						if (numberOfTransmissions >= 5) {
+                        numberOfTransmissions++;
+
+                        if (numberOfTransmissions >= 5) {
 							break;
 						}
 					}
                 } catch (SocketTimeoutException e) {
                     transmit = true;
+
+                    numberOfTransmissions++;
 
                     if (numberOfTransmissions >= 5) {
                         break;

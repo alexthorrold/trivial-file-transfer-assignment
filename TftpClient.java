@@ -21,7 +21,7 @@ class TftpClient {
         try {
             port = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            System.out.println(e.getMessage() + "here1");
+            System.out.println(e.getMessage());
             return;
         }
 
@@ -33,7 +33,7 @@ class TftpClient {
         try {
             ia = InetAddress.getByName(name);
         } catch (UnknownHostException e) {
-            System.out.println(e.getMessage() + "here2");
+            System.out.println(e.getMessage());
             return;
         }
 
@@ -43,7 +43,7 @@ class TftpClient {
             ds = new DatagramSocket();
             ds.setSoTimeout(6000);
         } catch (SocketException e) {
-            System.out.println(e.getMessage() + "here3");
+            System.out.println(e.getMessage());
             return;
         }
 
@@ -57,7 +57,7 @@ class TftpClient {
         try {
             fos = new FileOutputStream("rx-" + filename);
         } catch (FileNotFoundException e) {
-            System.out.println(e.getMessage() + "here4");
+            System.out.println(e.getMessage());
             ds.close();
             return;
         }
@@ -71,7 +71,12 @@ class TftpClient {
         try {
             ds.send(rrqPacket);
         } catch (IOException e) {
-            System.out.println(e.getMessage() + "here5");
+            System.out.println(e.getMessage());
+            try {
+                fos.close();
+            } catch (IOException ex) {
+                System.out.println(e.getMessage());
+            }
             ds.close();
             return;
         }
@@ -162,7 +167,7 @@ class TftpClient {
                  * the block to disk, etc.  in this case, the server
                  * didn't receive the ACK we sent, and retransmitted.
                  */
-                else if (tp.getBlock() == TftpPacket.lastBlock(nextBlock)) {
+                else {
                     DatagramPacket ackPacket = TftpPacket.createACK(resAddress, resPort, tp.getBlock());
                     ds.send(ackPacket);
                 }
