@@ -5,29 +5,51 @@ class TftpServerWorker extends Thread {
     private DatagramPacket req;
 
     public void run() {
-        /* parse the request packet, ensuring that it is a RRQ. */
+        /* parse the request packet, ensuring that it is an RRQ. */
         TftpPacket tp = TftpPacket.parse(req);
 
-		if (tp == null || tp.getType() != TftpPacket.Type.RRQ) {
-			return;
-		}
+        if (tp == null || tp.getType() != TftpPacket.Type.RRQ) {
+            return;
+        }
 
         /*
          * make a note of the address and port the client's request
          * came from
          */
-		InetAddress ia = tp.getAddr();
-		int port = tp.getPort();
+        InetAddress ia = tp.getAddr();
+        int port = tp.getPort();
 
-		String filename = tp.getFilename();
+        String filename = tp.getFilename();
 
-		System.out.println(filename);
+        System.out.println(filename);
+
+        DatagramSocket ds;
 
         /* create a datagram socket to send on, setSoTimeout to 1s (1000ms) */
-        /* XXX: implement */
+        try {
+            ds = new DatagramSocket();
+            ds.setSoTimeout(1000);
+        } catch (SocketException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
 
         /* try to open the file.  if not found, send an error */
-        /* XXX: implement */
+        FileInputStream fis;
+
+        try {
+            fis = new FileInputStream(filename);
+        } catch (FileNotFoundException e) {
+            DatagramPacket errPacket = TftpPacket.createERROR(ia, port, filename + " could not be found.");
+
+            try {
+                ds.send(errPacket);
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+
+            return;
+        }
 
         /*
          * Allocate a txbuf byte buffer 512 bytes in size to read
@@ -39,7 +61,11 @@ class TftpServerWorker extends Thread {
          * backed by that rxbuf to pass to the DatagramSocket::receive
          * method
          */
-        /* XXX: implement */
+        byte[] txbuf = new byte[512];
+        int currentBlock = 1;
+
+        byte[] rxbuf = new byte[2];
+        DatagramPacket ackPacket = new DatagramPacket(rxbuf, rxbuf.length);
 
         while (true) {
             /*
@@ -48,7 +74,18 @@ class TftpServerWorker extends Thread {
              * FileInputStream::read returning -1, then set the chunk
              * size to zero to cause an empty block to be sent.
              */
-            /* XXX: implement */
+            int chunkSize;
+
+            try {
+                chunkSize = fis.read(txbuf);
+
+                if (chunkSize == -1) {
+                    chunkSize = 0;
+                }
+            } catch (IOException e) {
+                chunkSize = 0;
+                System.out.println(e.getMessage());
+            }
 
             /*
              * use TftpPacket.createData to create a DATA packet
@@ -56,14 +93,15 @@ class TftpServerWorker extends Thread {
              * the block number, the contents of the block, and the
              * size of the block
              */
-            /* XXX: implement */
+            DatagramPacket dataPacket = TftpPacket.createDATA(ia, port, currentBlock, txbuf, chunkSize);
 
             /*
              * declare a boolean value to control transmission through
              * each loop, and an integer to count the number of
              * transmission attempts made with the current block.
              */
-            /* XXX: implement */
+            boolean transmit = true;
+            int numberOfTransmissions = 0;
 
             while (true) {
                 /*
@@ -74,7 +112,14 @@ class TftpServerWorker extends Thread {
                  * retransmitted except on a SocketTimeoutException,
                  * noted below.
                  */
-                /* XXX: implement */
+                try {
+                    ds.send(dataPacket);
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                }
+
+                transmit = false;
+                numberOfTransmissions++;
 
                 /*
                  * call receive, looking for an ACK for the current
@@ -84,34 +129,57 @@ class TftpServerWorker extends Thread {
                  * true.  if we have tried five times, then we break
                  * out of the loop to give up.
                  */
-                /* XXX: implement */
+                try {
+                    ds.receive(ackPacket);
 
-                /* XXX: delete the break, once you have implemented the loop */
-                break;
+					TftpPacket ack = TftpPacket.parse(ackPacket);
+
+					if (ack.getType() == TftpPacket.Type.ACK) {
+						break;
+					}
+					else {
+						transmit = true;
+
+						if (numberOfTransmissions >= 5) {
+							break;
+						}
+					}
+                } catch (SocketTimeoutException e) {
+                    transmit = true;
+
+                    if (numberOfTransmissions >= 5) {
+                        break;
+                    }
+                } catch (IOException e) {
+                    System.out.println(e.getMessage());
+                }
             }
 
             /*
-             * outside of the loop, determine if we just sent our last
+             * outside the loop, determine if we just sent our last
              * transmission (the block size was less than 512 bytes,
              * or we tried five times without getting an ack
              */
-            /* XXX: implement */
+			if (chunkSize < 512 || numberOfTransmissions >= 5) {
+				break;
+			}
 
             /*
              * use TftpPacket.nextBlock to determine the next block
              * number to use.
              */
-            /* XXX: implement */
-
-            /* XXX: delete the break, once you have implemented the loop */
-            break;
+			currentBlock = TftpPacket.nextBlock(currentBlock);
         }
 
         /* cleanup: close the FileInputStream and the DatagramSocket */
-        /* XXX: implement */
+		try {
+			fis.close();
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
 
-        return;
-    }
+		ds.close();
+	}
 
     public TftpServerWorker(DatagramPacket req) {
         this.req = req;
@@ -141,7 +209,7 @@ class TftpServer {
 
                 /*
                  * allocate a new worker thread to process this
-                 * packet.  implement the logic looking for a RRQ in
+                 * packet.  implement the logic looking for an RRQ in
                  * the worker thread's run method.
                  */
                 TftpServerWorker worker = new TftpServerWorker(p);
@@ -150,7 +218,5 @@ class TftpServer {
         } catch (Exception e) {
             System.err.println("TftpServer::main Exception: " + e);
         }
-
-        return;
     }
 }
