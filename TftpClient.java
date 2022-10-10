@@ -54,7 +54,6 @@ class TftpClient {
          * about to try to send to you.
          */
         FileOutputStream fos;
-
         try {
             fos = new FileOutputStream("rx-" + filename);
         } catch (FileNotFoundException e) {
@@ -68,7 +67,6 @@ class TftpClient {
          * send the packet over the DatagramSocket.
          */
         DatagramPacket rrqPacket = TftpPacket.createRRQ(ia, port, filename);
-
         try {
             ds.send(rrqPacket);
         } catch (IOException e) {

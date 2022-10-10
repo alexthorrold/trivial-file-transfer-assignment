@@ -23,9 +23,9 @@ class TftpServerWorker extends Thread {
 
         System.out.println(filename);
 
+        /* create a datagram socket to send on, setSoTimeout to 1s (1000ms) */
         DatagramSocket ds;
 
-        /* create a datagram socket to send on, setSoTimeout to 1s (1000ms) */
         try {
             ds = new DatagramSocket();
             ds.setSoTimeout(1000);
@@ -114,11 +114,11 @@ class TftpServerWorker extends Thread {
                  */
                 try {
                     ds.send(dataPacket);
+                    numberOfTransmissions++;
+                    transmit = false;
                 } catch (IOException e) {
                     System.out.println(e.getMessage());
                 }
-
-                transmit = false;
 
                 /*
                  * call receive, looking for an ACK for the current
@@ -131,24 +131,19 @@ class TftpServerWorker extends Thread {
                 try {
                     ds.receive(ackPacket);
 
-					TftpPacket ack = TftpPacket.parse(ackPacket);
+                    TftpPacket ack = TftpPacket.parse(ackPacket);
 
-					if (ack.getType() == TftpPacket.Type.ACK) {
-						break;
-					}
-					else {
-						transmit = true;
-
-                        numberOfTransmissions++;
+                    if (ack.getType() == TftpPacket.Type.ACK) {
+                        break;
+                    } else {
+                        transmit = true;
 
                         if (numberOfTransmissions >= 5) {
-							break;
-						}
-					}
+                            break;
+                        }
+                    }
                 } catch (SocketTimeoutException e) {
                     transmit = true;
-
-                    numberOfTransmissions++;
 
                     if (numberOfTransmissions >= 5) {
                         break;
@@ -163,26 +158,26 @@ class TftpServerWorker extends Thread {
              * transmission (the block size was less than 512 bytes,
              * or we tried five times without getting an ack
              */
-			if (chunkSize < 512 || numberOfTransmissions >= 5) {
-				break;
-			}
+            if (chunkSize < 512 || numberOfTransmissions >= 5) {
+                break;
+            }
 
             /*
              * use TftpPacket.nextBlock to determine the next block
              * number to use.
              */
-			currentBlock = TftpPacket.nextBlock(currentBlock);
+            currentBlock = TftpPacket.nextBlock(currentBlock);
         }
 
         /* cleanup: close the FileInputStream and the DatagramSocket */
-		try {
-			fis.close();
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-		}
+        try {
+            fis.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
 
-		ds.close();
-	}
+        ds.close();
+    }
 
     public TftpServerWorker(DatagramPacket req) {
         this.req = req;
