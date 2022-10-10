@@ -161,6 +161,8 @@ class TftpClient {
                     if (data.length != 512) {
                         break;
                     }
+
+                    nextBlock = TftpPacket.nextBlock(nextBlock);
                 }
 
                 /*
