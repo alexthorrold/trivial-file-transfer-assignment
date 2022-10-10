@@ -19,6 +19,7 @@ class TftpClient {
          * (port) argument
          */
         int port;
+
         try {
             port = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
@@ -31,6 +32,7 @@ class TftpClient {
          * argument
          */
         InetAddress ia;
+
         try {
             ia = InetAddress.getByName(name);
         } catch (UnknownHostException e) {
@@ -40,6 +42,7 @@ class TftpClient {
 
         /* allocate a DatagramSocket, and setSoTimeout to 6s (6000ms) */
         DatagramSocket ds;
+
         try {
             ds = new DatagramSocket();
             ds.setSoTimeout(6000);
@@ -54,6 +57,7 @@ class TftpClient {
          * about to try to send to you.
          */
         FileOutputStream fos;
+
         try {
             fos = new FileOutputStream("rx-" + filename);
         } catch (FileNotFoundException e) {
@@ -67,6 +71,7 @@ class TftpClient {
          * send the packet over the DatagramSocket.
          */
         DatagramPacket rrqPacket = TftpPacket.createRRQ(ia, port, filename);
+
         try {
             ds.send(rrqPacket);
         } catch (IOException e) {
