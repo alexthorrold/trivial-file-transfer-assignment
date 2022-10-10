@@ -86,7 +86,7 @@ class TftpPacket {
     }
 
     /*
-     * utility method to create a RRQ DatagramPacket, given the
+     * utility method to create an RRQ DatagramPacket, given the
      * destination address, port number, and filename.
      */
     static public DatagramPacket createRRQ(InetAddress dst, int port,
